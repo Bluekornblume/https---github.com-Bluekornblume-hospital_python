@@ -8,7 +8,7 @@ bp = Blueprint('api', __name__)
 
 @bp.route('/')
 def index():
-    return "欢迎来到病院管理システム！"
+    return "欢迎来到なんとか管理システム！"
 
 @bp.route('/patient', methods = ['GET'])
 def get_patients():
@@ -23,7 +23,7 @@ def insert_patient():
 
     name = data.get('name')
     if not name:
-        return jsonify({"error" : "请输入姓名"}), 400
+        return jsonify({"error" : "名前を入力してください"}), 400
     
     birthdate_str = data.get('birthdate')
     birthdate_date = None
@@ -31,7 +31,7 @@ def insert_patient():
         try:
             birthdate_date = datetime.strptime(birthdate_str, "%Y-%m-%d")
         except ValueError:
-            return jsonify({"日期格式应为 YYYY-MM-DD"}), 400
+            return jsonify({"日付の形式は YYYY-MM-DD"}), 400
         
     new_patient = Patient(
         name = name,
@@ -44,14 +44,12 @@ def insert_patient():
     try:
         db.session.add(new_patient)
         db.session.commit()
-        print("✅ 数据成功插入：", new_patient)
+        
     except Exception as e:
         db.session.rollback()
-        print("❌ 数据库提交失败：", str(e))
-        return jsonify({"error": "数据库写入失败", "details": str(e)}), 500
 
     return jsonify({
-        "message": "新增病人成功",
+        "message": "登録成功",
         "patient": new_patient.to_dict()
     }), 201
     
@@ -60,14 +58,23 @@ def insert_patient():
 def get_by_id(patient_id):
     patient = Patient.query.get(patient_id)
     
-    return jsonify(patient.to_dict())
+    if not patient:
+        return jsonify({
+            "エラー":"データなし"
+        }),400
+    
+    return jsonify(patient.to_dict()),200
+
+
+
+
 
 @bp.route("/patient/<int:patient_id>", methods = ['PUT'])
 def update(patient_id):
     # 🔹 1. 获取 URL 中的 ID 参数
     update_patient = Patient.query.get(patient_id)
     if not update_patient:
-        return jsonify({"error": "未找到该病人"}), 404
+        return jsonify({"error": "データなし"}), 404
     
     
     data = request.get_json()
@@ -96,4 +103,30 @@ def update(patient_id):
     return jsonify({
         "message": "更新成功",
         "patient": update_patient.to_dict()
+    }), 200
+    
+@bp.route("/patient/<int:patient_id>", methods = ["DELETE"])
+def delete_by_id(patient_id):
+    patient = Patient.query.get(patient_id)
+    if not patient:
+        return jsonify({
+            "error":"データなし"
+        }), 400
+    
+    db.session.delete(patient)
+    db.session.commit()
+    return jsonify({
+        "削除成功" : patient_id
+    }), 200
+    
+
+@bp.route("/patient/delete_batch", methods = ["POST"])
+def delete_batch():
+    ids = request.get_json()
+    
+    Patient.query.filter(Patient.id.in_(ids)).delete(synchronize_session=False)
+    db.session.commit()
+    return jsonify({
+        "msg":"削除成功",
+        "ids":ids
     })
