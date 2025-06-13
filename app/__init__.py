@@ -12,6 +12,6 @@ def create_app():
 
     # 导入并注册路由蓝图
     from app.routes import bp as main_bp
-    app.register_blueprint(main_bp)
+    app.register_blueprint(main_bp, url_prefix='/api')
 
     return app
