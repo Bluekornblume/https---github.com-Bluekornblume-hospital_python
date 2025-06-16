@@ -31,11 +31,19 @@ class Doctor(db.Model):
     name = db.Column(db.String(50), nullable=False)
     specialization = db.Column(db.String(100))
     phone = db.Column(db.String(20))
+    gender = db.Column(db.Integer)
+    roll = db.Column(db.Integer)
+    adress = db.Column(db.String(50))
+    work_year = db.Column(db.Integer)
 
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
             "specialization": self.specialization,
-            "phone": self.phone
+            "phone": self.phone,
+            "gender" : self.phone,
+            "roll" : self.roll,
+            "adress": self.adress,
+            "work_year": self.work_year
         }
