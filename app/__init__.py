@@ -11,7 +11,7 @@ def create_app():
     db.init_app(app)
 
     # 导入并注册路由蓝图
-    from app.routes import bp as main_bp
+    from app.routes.patient_routes import bp as main_bp
     app.register_blueprint(main_bp, url_prefix='/api')
 
     return app
